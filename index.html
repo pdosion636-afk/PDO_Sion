@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>PDO SION</title>
+
+    <meta
+        name="theme-color"
+        content="#800000"
+    >
+
+    <link
+        rel="manifest"
+        href="manifest.json"
+    >
+
+    <link
+        rel="stylesheet"
+        href="PDO SION.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+</head>
+
+
+<body>
+
+<script src="auth.js"></script>
+
+
+<!-- =================================================
+     NAVBAR
+================================================= -->
+
+<nav class="navbar">
+
+    <a
+        href="index.html"
+        class="logo"
+    >
+        PDO SION
+    </a>
+
+
+    <div class="nav-links">
+
+        <a
+            href="index.html"
+            class="active"
+        >
+            Beranda
+        </a>
+
+        <a href="kegiatan.html">
+            Kegiatan
+        </a>
+
+        <a href="renungan.html">
+            Renungan
+        </a>
+
+        <a href="doa.html">
+            Doa
+        </a>
+
+        <a href="kontak.html">
+            Kontak
+        </a>
+
+        <button
+            onclick="logoutPDO()"
+            class="logout-button"
+        >
+            Keluar
+        </button>
+
+    </div>
+
+</nav>
+
+
+<!-- =================================================
+     HERO
+================================================= -->
+
+<header class="hero">
+
+    <div class="hero-overlay"></div>
+
+
+    <div class="hero-content">
+
+        <p class="welcome">
+            SELAMAT DATANG DI
+        </p>
+
+
+        <h1>
+            PDO SION
+        </h1>
+
+
+        <p class="hero-greeting">
+
+            Tuhan memberkati,
+            <strong data-username></strong>.
+
+        </p>
+
+
+        <p class="subtitle">
+
+            Bertumbuh dalam Firman,
+            bertekun dalam doa,
+            dan berjalan bersama
+            dalam kasih Kristus.
+
+        </p>
+
+
+        <div class="hero-buttons">
+
+            <a
+                href="renungan.html"
+                class="btn btn-primary"
+            >
+
+                <i class="fa-solid fa-book-bible"></i>
+
+                Renungan Hari Ini
+
+            </a>
+
+
+            <a
+                href="kegiatan.html"
+                class="btn btn-glass"
+            >
+
+                <i class="fa-solid fa-calendar-days"></i>
+
+                Kegiatan
+
+            </a>
+
+        </div>
+
+
+        <!-- =========================================
+             AKTIFKAN PUSH NOTIFICATION
+        ========================================== -->
+
+        <button
+            id="notificationButton"
+            class="notification-button"
+        >
+
+            <i class="fa-regular fa-bell"></i>
+
+            Aktifkan Pengingat Renungan
+
+        </button>
+
+
+        <p
+            id="notificationStatus"
+            class="notification-status"
+        ></p>
+
+
+    </div>
+
+</header>
+
+
+<!-- =================================================
+     FITUR
+================================================= -->
+
+<section class="quick-section">
+
+    <div class="section-title">
+
+        <span>
+            PDO SION
+        </span>
+
+
+        <h2>
+            Mari Bertumbuh Bersama
+        </h2>
+
+
+        <p>
+            Temukan berbagai kegiatan,
+            renungan, doa, dan informasi
+            PDO SION dalam satu tempat.
+        </p>
+
+    </div>
+
+
+    <div class="quick-grid">
+
+
+        <a
+            href="kegiatan.html"
+            class="feature-card"
+        >
+
+            <div class="feature-icon">
+
+                <i
+                    class="fa-solid fa-calendar-days"
+                ></i>
+
+            </div>
+
+
+            <h3>
+                Kalender Kegiatan
+            </h3>
+
+
+            <p>
+                Lihat jadwal kegiatan
+                PDO SION.
+            </p>
+
+
+            <span>
+                Lihat kegiatan →
+            </span>
+
+        </a>
+
+
+        <a
+            href="renungan.html"
+            class="feature-card"
+        >
+
+            <div class="feature-icon">
+
+                <i
+                    class="fa-solid fa-book-bible"
+                ></i>
+
+            </div>
+
+
+            <h3>
+                Renungan Harian
+            </h3>
+
+
+            <p>
+                Ayat, refleksi,
+                dan doa.
+            </p>
+
+
+            <span>
+                Baca renungan →
+            </span>
+
+        </a>
+
+
+        <a
+            href="doa.html"
+            class="feature-card"
+        >
+
+            <div class="feature-icon">
+
+                <i
+                    class="fa-solid fa-hands-praying"
+                ></i>
+
+            </div>
+
+
+            <h3>
+                Permohonan Doa
+            </h3>
+
+
+            <p>
+                Sampaikan pokok doa Anda.
+            </p>
+
+
+            <span>
+                Kirim pokok doa →
+            </span>
+
+        </a>
+
+
+        <a
+            href="kontak.html"
+            class="feature-card"
+        >
+
+            <div class="feature-icon whatsapp">
+
+                <i
+                    class="fa-brands fa-whatsapp"
+                ></i>
+
+            </div>
+
+
+            <h3>
+                Hubungi Kami
+            </h3>
+
+
+            <p>
+                Hubungi pengurus
+                melalui WhatsApp.
+            </p>
+
+
+            <span>
+                Hubungi →
+            </span>
+
+        </a>
+
+
+    </div>
+
+</section>
+
+
+<footer>
+
+    <h3>
+        PDO SION
+    </h3>
+
+
+    <p>
+        Bertumbuh dalam Firman dan doa.
+    </p>
+
+
+    <p class="copyright">
+        © 2026 PDO SION
+    </p>
+
+</footer>
+
+
+<script
+    type="module"
+    src="push.js"
+></script>
+
+</body>
+</html>

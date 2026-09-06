@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Login - PDO SION</title>
+
+    <meta
+        name="theme-color"
+        content="#800000"
+    >
+
+    <link
+        rel="manifest"
+        href="manifest.json"
+    >
+
+    <link
+        rel="stylesheet"
+        href="PDO SION.css"
+    >
+
+    <!-- EmailJS -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+</head>
+
+
+<body class="login-page">
+
+    <div class="login-overlay"></div>
+
+
+    <div class="login-card">
+
+        <div class="login-symbol">
+            ✝
+        </div>
+
+
+        <div class="login-logo">
+            PDO SION
+        </div>
+
+
+        <p class="login-label">
+            SELAMAT DATANG
+        </p>
+
+
+        <h1>
+            Mari Bertumbuh Bersama
+        </h1>
+
+
+        <p class="login-description">
+            Masukkan nama Anda untuk masuk
+            ke website PDO SION.
+        </p>
+
+
+        <form id="loginForm">
+
+            <label for="username">
+                Nama / Username
+            </label>
+
+
+            <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder="Contoh: Agung"
+                minlength="2"
+                maxlength="30"
+                autocomplete="name"
+                required
+            >
+
+
+            <button
+                type="submit"
+                id="loginButton"
+                class="login-button"
+            >
+
+                <span id="loginButtonText">
+                    Masuk ke PDO SION
+                </span>
+
+            </button>
+
+        </form>
+
+
+        <p
+            id="loginMessage"
+            class="login-message"
+        ></p>
+
+
+        <div class="login-quote">
+            “Bertumbuh dalam Firman,
+            bertekun dalam doa.”
+        </div>
+
+    </div>
+
+
+    <script src="login.js"></script>
+
+</body>
+</html>
