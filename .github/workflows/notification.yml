@@ -1,0 +1,512 @@
+name: PDO SION Notification
+
+on:
+
+  # =====================================================
+  # TES MANUAL
+  # Bisa dijalankan dari GitHub Actions → Run workflow
+  # =====================================================
+  workflow_dispatch:
+
+  # =====================================================
+  # JADWAL OTOMATIS
+  # =====================================================
+
+  # Senin & Kamis — 05:00 WIB
+  schedule:
+    - cron: "0 5 * * 1,4"
+      timezone: "Asia/Jakarta"
+
+    # Setiap hari — 06:00 WIB
+    - cron: "0 6 * * *"
+      timezone: "Asia/Jakarta"
+
+    # Setiap hari — 12:00 WIB
+    - cron: "0 12 * * *"
+      timezone: "Asia/Jakarta"
+
+    # Setiap hari — 19:00 WIB
+    - cron: "0 19 * * *"
+      timezone: "Asia/Jakarta"
+
+
+jobs:
+
+  send-notification:
+
+    runs-on: ubuntu-latest
+
+
+    steps:
+
+      # =================================================
+      # CHECKOUT REPOSITORY
+      # =================================================
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+
+      # =================================================
+      # NODE.JS
+      # =================================================
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+
+      # =================================================
+      # INSTALL FIREBASE ADMIN SDK
+      # =================================================
+
+      - name: Install Firebase Admin SDK
+        run: npm install firebase-admin@14.1.0
+
+
+      # =================================================
+      # KIRIM NOTIFIKASI
+      # =================================================
+
+      - name: Send PDO SION Notification
+        env:
+
+          FIREBASE_SERVICE_ACCOUNT:
+            ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+        run: |
+
+          cat > send-notification.mjs <<'EOF'
+
+          import {
+            initializeApp,
+            cert
+          } from "firebase-admin/app";
+
+          import {
+            getFirestore
+          } from "firebase-admin/firestore";
+
+          import {
+            getMessaging
+          } from "firebase-admin/messaging";
+
+
+          // =================================================
+          // FIREBASE ADMIN
+          // =================================================
+
+          const serviceAccount =
+            JSON.parse(
+              process.env.FIREBASE_SERVICE_ACCOUNT
+            );
+
+
+          initializeApp({
+            credential: cert(serviceAccount)
+          });
+
+
+          const db =
+            getFirestore();
+
+          const messaging =
+            getMessaging();
+
+
+          // =================================================
+          // TENTUKAN WAKTU SEKARANG
+          // =================================================
+
+          const now =
+            new Date();
+
+
+          const formatter =
+            new Intl.DateTimeFormat(
+              "en-US",
+              {
+                timeZone: "Asia/Jakarta",
+                weekday: "long",
+                hour: "2-digit",
+                minute: "2-digit",
+                hourCycle: "h23"
+              }
+            );
+
+
+          const parts =
+            formatter.formatToParts(now);
+
+
+          const weekday =
+            parts.find(
+              item =>
+                item.type === "weekday"
+            )?.value;
+
+
+          const hour =
+            Number(
+              parts.find(
+                item =>
+                  item.type === "hour"
+              )?.value
+            );
+
+
+          const minute =
+            Number(
+              parts.find(
+                item =>
+                  item.type === "minute"
+              )?.value
+            );
+
+
+          console.log(
+            `Waktu WIB: ${weekday} ${hour}:${String(minute).padStart(2, "0")}`
+          );
+
+
+          // =================================================
+          // TENTUKAN PESAN
+          // =================================================
+
+          let title;
+          let body;
+
+
+          // -------------------------------------------------
+          // MANUAL TEST
+          // -------------------------------------------------
+
+          if (
+            process.env.GITHUB_EVENT_NAME ===
+            "workflow_dispatch"
+          ) {
+
+            title =
+              "🔔 Tes PDO SION";
+
+            body =
+              "Notifikasi dari GitHub Actions berhasil!";
+
+          }
+
+
+          // -------------------------------------------------
+          // SENIN & KAMIS — 05.00
+          // -------------------------------------------------
+
+          else if (
+
+            hour === 5 &&
+
+            (
+              weekday === "Monday" ||
+              weekday === "Thursday"
+            )
+
+          ) {
+
+            title =
+              "📖 Renungan Baru PDO SION";
+
+            body =
+              "Renungan hari ini sudah tersedia. Yuk luangkan waktu untuk membaca Firman Tuhan.";
+
+          }
+
+
+          // -------------------------------------------------
+          // 06.00
+          // -------------------------------------------------
+
+          else if (hour === 6) {
+
+            title =
+              "🙏 Pengingat PDO SION";
+
+            body =
+              "Sudahkah kamu membaca renungan hari ini?";
+
+          }
+
+
+          // -------------------------------------------------
+          // 12.00
+          // -------------------------------------------------
+
+          else if (hour === 12) {
+
+            title =
+              "🌿 Pengingat PDO SION";
+
+            body =
+              "Luangkan waktu sejenak untuk mengingat Firman Tuhan.";
+
+          }
+
+
+          // -------------------------------------------------
+          // 19.00
+          // -------------------------------------------------
+
+          else if (hour === 19) {
+
+            title =
+              "❤️ Pengingat PDO SION";
+
+            body =
+              "Mari kembali merenungkan Firman Tuhan hari ini.";
+
+          }
+
+
+          else {
+
+            console.log(
+              "Tidak ada jadwal notifikasi."
+            );
+
+            process.exit(0);
+
+          }
+
+
+          console.log(
+            "Judul:",
+            title
+          );
+
+          console.log(
+            "Pesan:",
+            body
+          );
+
+
+          // =================================================
+          // AMBIL TOKEN FIRESTORE
+          // =================================================
+
+          const snapshot =
+            await db
+              .collection("pushRegistrations")
+              .get();
+
+
+          const tokens =
+            snapshot.docs
+              .map(doc => ({
+                id: doc.id,
+                token: doc.data().token
+              }))
+              .filter(
+                item =>
+                  typeof item.token === "string" &&
+                  item.token.length > 0
+              );
+
+
+          console.log(
+            `Jumlah perangkat: ${tokens.length}`
+          );
+
+
+          if (tokens.length === 0) {
+
+            console.log(
+              "Tidak ada perangkat yang terdaftar."
+            );
+
+            process.exit(0);
+
+          }
+
+
+          // =================================================
+          // KIRIM MAKSIMAL 500 TOKEN PER BATCH
+          // =================================================
+
+          let totalSuccess = 0;
+          let totalFailure = 0;
+
+
+          for (
+            let i = 0;
+            i < tokens.length;
+            i += 500
+          ) {
+
+            const batch =
+              tokens.slice(i, i + 500);
+
+
+            const message = {
+
+              // DATA MESSAGE
+              // ditangani firebase-messaging-sw.js
+              data: {
+
+                title:
+                  title,
+
+                body:
+                  body,
+
+                url:
+                  "/renungan.html"
+
+              },
+
+              webpush: {
+
+                headers: {
+
+                  Urgency:
+                    "high"
+
+                }
+
+              },
+
+              tokens:
+                batch.map(
+                  item => item.token
+                )
+
+            };
+
+
+            console.log(
+              `Mengirim batch ${Math.floor(i / 500) + 1}...`
+            );
+
+
+            const response =
+              await messaging
+                .sendEachForMulticast(
+                  message
+                );
+
+
+            totalSuccess +=
+              response.successCount;
+
+
+            totalFailure +=
+              response.failureCount;
+
+
+            // =============================================
+            // HAPUS TOKEN YANG SUDAH TIDAK VALID
+            // =============================================
+
+            for (
+              let j = 0;
+              j < response.responses.length;
+              j++
+            ) {
+
+              const result =
+                response.responses[j];
+
+
+              if (!result.success) {
+
+                const errorCode =
+                  result.error?.code;
+
+
+                console.error(
+                  "Gagal:",
+                  errorCode
+                );
+
+
+                if (
+
+                  errorCode ===
+                    "messaging/registration-token-not-registered" ||
+
+                  errorCode ===
+                    "messaging/invalid-registration-token"
+
+                ) {
+
+                  try {
+
+                    await db
+                      .collection(
+                        "pushRegistrations"
+                      )
+                      .doc(
+                        batch[j].id
+                      )
+                      .delete();
+
+
+                    console.log(
+                      "Token tidak valid dihapus."
+                    );
+
+                  }
+
+                  catch (deleteError) {
+
+                    console.error(
+                      "Gagal menghapus token:",
+                      deleteError
+                    );
+
+                  }
+
+                }
+
+              }
+
+            }
+
+          }
+
+
+          // =================================================
+          // HASIL
+          // =================================================
+
+          console.log(
+            "================================="
+          );
+
+          console.log(
+            "SELESAI"
+          );
+
+          console.log(
+            "Berhasil:",
+            totalSuccess
+          );
+
+          console.log(
+            "Gagal:",
+            totalFailure
+          );
+
+          console.log(
+            "================================="
+          );
+
+
+          if (totalSuccess === 0) {
+
+            process.exit(1);
+
+          }
+
+
+          EOF
+
+
+          node send-notification.mjs
