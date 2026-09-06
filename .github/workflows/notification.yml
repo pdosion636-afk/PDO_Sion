@@ -1,82 +1,49 @@
 name: PDO SION Notification
 
 on:
-
-  # =====================================================
-  # TES MANUAL
-  # Bisa dijalankan dari GitHub Actions → Run workflow
-  # =====================================================
+  # Untuk tes manual
   workflow_dispatch:
 
-  # =====================================================
-  # JADWAL OTOMATIS
-  # =====================================================
-
-  # Senin & Kamis — 05:00 WIB
+  # Jadwal otomatis WIB
   schedule:
+    # Senin & Kamis - 05.00 WIB
     - cron: "0 5 * * 1,4"
       timezone: "Asia/Jakarta"
 
-    # Setiap hari — 06:00 WIB
+    # Setiap hari - 06.00 WIB
     - cron: "0 6 * * *"
       timezone: "Asia/Jakarta"
 
-    # Setiap hari — 12:00 WIB
+    # Setiap hari - 12.00 WIB
     - cron: "0 12 * * *"
       timezone: "Asia/Jakarta"
 
-    # Setiap hari — 19:00 WIB
+    # Setiap hari - 19.00 WIB
     - cron: "0 19 * * *"
       timezone: "Asia/Jakarta"
 
 
 jobs:
-
   send-notification:
-
     runs-on: ubuntu-latest
 
-
     steps:
-
-      # =================================================
-      # CHECKOUT REPOSITORY
-      # =================================================
-
       - name: Checkout repository
         uses: actions/checkout@v4
-
-
-      # =================================================
-      # NODE.JS
-      # =================================================
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-
-      # =================================================
-      # INSTALL FIREBASE ADMIN SDK
-      # =================================================
-
       - name: Install Firebase Admin SDK
         run: npm install firebase-admin@14.1.0
 
-
-      # =================================================
-      # KIRIM NOTIFIKASI
-      # =================================================
-
       - name: Send PDO SION Notification
         env:
-
-          FIREBASE_SERVICE_ACCOUNT:
-            ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
         run: |
-
           cat > send-notification.mjs <<'EOF'
 
           import {
@@ -102,26 +69,19 @@ jobs:
               process.env.FIREBASE_SERVICE_ACCOUNT
             );
 
-
           initializeApp({
             credential: cert(serviceAccount)
           });
 
-
-          const db =
-            getFirestore();
-
-          const messaging =
-            getMessaging();
+          const db = getFirestore();
+          const messaging = getMessaging();
 
 
           // =================================================
-          // TENTUKAN WAKTU SEKARANG
+          // WAKTU WIB
           // =================================================
 
-          const now =
-            new Date();
-
+          const now = new Date();
 
           const formatter =
             new Intl.DateTimeFormat(
@@ -135,38 +95,30 @@ jobs:
               }
             );
 
-
           const parts =
             formatter.formatToParts(now);
 
-
           const weekday =
             parts.find(
-              item =>
-                item.type === "weekday"
+              item => item.type === "weekday"
             )?.value;
-
 
           const hour =
             Number(
               parts.find(
-                item =>
-                  item.type === "hour"
+                item => item.type === "hour"
               )?.value
             );
-
 
           const minute =
             Number(
               parts.find(
-                item =>
-                  item.type === "minute"
+                item => item.type === "minute"
               )?.value
             );
 
-
           console.log(
-            `Waktu WIB: ${weekday} ${hour}:${String(minute).padStart(2, "0")}`
+            `Waktu WIB: ${weekday} ${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
           );
 
 
@@ -174,13 +126,12 @@ jobs:
           // TENTUKAN PESAN
           // =================================================
 
-          let title;
-          let body;
+          let title = "";
+          let body = "";
 
-
-          // -------------------------------------------------
-          // MANUAL TEST
-          // -------------------------------------------------
+          // -----------------------------------------------
+          // TES MANUAL
+          // -----------------------------------------------
 
           if (
             process.env.GITHUB_EVENT_NAME ===
@@ -196,9 +147,9 @@ jobs:
           }
 
 
-          // -------------------------------------------------
-          // SENIN & KAMIS — 05.00
-          // -------------------------------------------------
+          // -----------------------------------------------
+          // SENIN & KAMIS - 05.00
+          // -----------------------------------------------
 
           else if (
 
@@ -220,9 +171,9 @@ jobs:
           }
 
 
-          // -------------------------------------------------
-          // 06.00
-          // -------------------------------------------------
+          // -----------------------------------------------
+          // SETIAP HARI - 06.00
+          // -----------------------------------------------
 
           else if (hour === 6) {
 
@@ -235,9 +186,9 @@ jobs:
           }
 
 
-          // -------------------------------------------------
-          // 12.00
-          // -------------------------------------------------
+          // -----------------------------------------------
+          // SETIAP HARI - 12.00
+          // -----------------------------------------------
 
           else if (hour === 12) {
 
@@ -250,9 +201,9 @@ jobs:
           }
 
 
-          // -------------------------------------------------
-          // 19.00
-          // -------------------------------------------------
+          // -----------------------------------------------
+          // SETIAP HARI - 19.00
+          // -----------------------------------------------
 
           else if (hour === 19) {
 
@@ -276,19 +227,12 @@ jobs:
           }
 
 
-          console.log(
-            "Judul:",
-            title
-          );
-
-          console.log(
-            "Pesan:",
-            body
-          );
+          console.log("Judul:", title);
+          console.log("Pesan:", body);
 
 
           // =================================================
-          // AMBIL TOKEN FIRESTORE
+          // AMBIL TOKEN DARI FIRESTORE
           // =================================================
 
           const snapshot =
@@ -297,7 +241,7 @@ jobs:
               .get();
 
 
-          const tokens =
+          const registrations =
             snapshot.docs
               .map(doc => ({
                 id: doc.id,
@@ -311,11 +255,11 @@ jobs:
 
 
           console.log(
-            `Jumlah perangkat: ${tokens.length}`
+            `Jumlah perangkat: ${registrations.length}`
           );
 
 
-          if (tokens.length === 0) {
+          if (registrations.length === 0) {
 
             console.log(
               "Tidak ada perangkat yang terdaftar."
@@ -327,7 +271,7 @@ jobs:
 
 
           // =================================================
-          // KIRIM MAKSIMAL 500 TOKEN PER BATCH
+          // KIRIM KE TOKEN
           // =================================================
 
           let totalSuccess = 0;
@@ -336,40 +280,25 @@ jobs:
 
           for (
             let i = 0;
-            i < tokens.length;
+            i < registrations.length;
             i += 500
           ) {
 
             const batch =
-              tokens.slice(i, i + 500);
-
+              registrations.slice(i, i + 500);
 
             const message = {
 
-              // DATA MESSAGE
-              // ditangani firebase-messaging-sw.js
               data: {
-
-                title:
-                  title,
-
-                body:
-                  body,
-
-                url:
-                  "/renungan.html"
-
+                title: title,
+                body: body,
+                url: "/renungan.html"
               },
 
               webpush: {
-
                 headers: {
-
-                  Urgency:
-                    "high"
-
+                  Urgency: "high"
                 }
-
               },
 
               tokens:
@@ -395,14 +324,13 @@ jobs:
             totalSuccess +=
               response.successCount;
 
-
             totalFailure +=
               response.failureCount;
 
 
-            // =============================================
+            // ---------------------------------------------
             // HAPUS TOKEN YANG SUDAH TIDAK VALID
-            // =============================================
+            // ---------------------------------------------
 
             for (
               let j = 0;
@@ -413,15 +341,13 @@ jobs:
               const result =
                 response.responses[j];
 
-
               if (!result.success) {
 
                 const errorCode =
                   result.error?.code;
 
-
                 console.error(
-                  "Gagal:",
+                  "Pengiriman gagal:",
                   errorCode
                 );
 
@@ -447,14 +373,11 @@ jobs:
                       )
                       .delete();
 
-
                     console.log(
                       "Token tidak valid dihapus."
                     );
 
-                  }
-
-                  catch (deleteError) {
+                  } catch (deleteError) {
 
                     console.error(
                       "Gagal menghapus token:",
@@ -473,7 +396,7 @@ jobs:
 
 
           // =================================================
-          // HASIL
+          // HASIL AKHIR
           // =================================================
 
           console.log(
@@ -481,7 +404,7 @@ jobs:
           );
 
           console.log(
-            "SELESAI"
+            "PDO SION NOTIFICATION SELESAI"
           );
 
           console.log(
@@ -500,13 +423,9 @@ jobs:
 
 
           if (totalSuccess === 0) {
-
             process.exit(1);
-
           }
 
-
           EOF
-
 
           node send-notification.mjs
