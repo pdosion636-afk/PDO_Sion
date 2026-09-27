@@ -1,63 +1,142 @@
 name: PDO SION Notification
 
 on:
-  # Untuk tes manual
+
+  # =====================================================
+  # TES MANUAL
+  # =====================================================
+
   workflow_dispatch:
 
-  # Jadwal otomatis WIB
+
+  # =====================================================
+  # JADWAL OTOMATIS
+  # HANYA SENIN & KAMIS
+  # =====================================================
+
   schedule:
-    # Senin & Kamis - 05.00 WIB
+
+    # ---------------------------------------------------
+    # SENIN & KAMIS - 05.00 WIB
+    # ---------------------------------------------------
+
     - cron: "0 5 * * 1,4"
       timezone: "Asia/Jakarta"
 
-    # Setiap hari - 06.00 WIB
-    - cron: "0 6 * * *"
+
+    # ---------------------------------------------------
+    # SENIN & KAMIS - 06.00 WIB
+    # ---------------------------------------------------
+
+    - cron: "0 6 * * 1,4"
       timezone: "Asia/Jakarta"
 
-    # Setiap hari - 12.00 WIB
-    - cron: "0 12 * * *"
+
+    # ---------------------------------------------------
+    # SENIN & KAMIS - 12.00 WIB
+    # ---------------------------------------------------
+
+    - cron: "0 12 * * 1,4"
       timezone: "Asia/Jakarta"
 
-    # Setiap hari - 19.00 WIB
-    - cron: "0 19 * * *"
+
+    # ---------------------------------------------------
+    # SENIN & KAMIS - 19.00 WIB
+    # ---------------------------------------------------
+
+    - cron: "0 19 * * 1,4"
       timezone: "Asia/Jakarta"
 
+
+
+# =======================================================
+# JOB
+# =======================================================
 
 jobs:
+
   send-notification:
+
     runs-on: ubuntu-latest
 
+
     steps:
+
+
+      # =================================================
+      # CHECKOUT
+      # =================================================
+
       - name: Checkout repository
-        uses: actions/checkout@v4
+
+        uses:
+          actions/checkout@v4
+
+
+
+      # =================================================
+      # NODE.JS
+      # =================================================
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+
+        uses:
+          actions/setup-node@v4
+
         with:
+
           node-version: 22
 
-      - name: Install Firebase Admin SDK
-        run: npm install firebase-admin@14.1.0
 
-      - name: Send PDO SION Notification
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      # =================================================
+      # INSTALL FIREBASE ADMIN SDK
+      # =================================================
+
+      - name: Install Firebase Admin SDK
 
         run: |
+
+          npm install firebase-admin@14.1.0
+
+
+
+      # =================================================
+      # KIRIM NOTIFIKASI
+      # =================================================
+
+      - name: Send PDO SION Notification
+
+        env:
+
+          FIREBASE_SERVICE_ACCOUNT:
+            ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+
+        run: |
+
           cat > send-notification.mjs <<'EOF'
+
+
+          // =================================================
+          // IMPORT FIREBASE ADMIN
+          // =================================================
 
           import {
             initializeApp,
             cert
           } from "firebase-admin/app";
 
+
           import {
             getFirestore
           } from "firebase-admin/firestore";
 
+
           import {
             getMessaging
           } from "firebase-admin/messaging";
+
 
 
           // =================================================
@@ -69,77 +148,135 @@ jobs:
               process.env.FIREBASE_SERVICE_ACCOUNT
             );
 
+
           initializeApp({
-            credential: cert(serviceAccount)
+
+            credential:
+              cert(serviceAccount)
+
           });
 
-          const db = getFirestore();
-          const messaging = getMessaging();
+
+          const db =
+            getFirestore();
+
+
+          const messaging =
+            getMessaging();
+
 
 
           // =================================================
           // WAKTU WIB
           // =================================================
 
-          const now = new Date();
+          const now =
+            new Date();
+
 
           const formatter =
             new Intl.DateTimeFormat(
+
               "en-US",
+
               {
-                timeZone: "Asia/Jakarta",
-                weekday: "long",
-                hour: "2-digit",
-                minute: "2-digit",
-                hourCycle: "h23"
+
+                timeZone:
+                  "Asia/Jakarta",
+
+                weekday:
+                  "long",
+
+                hour:
+                  "2-digit",
+
+                minute:
+                  "2-digit",
+
+                hourCycle:
+                  "h23"
+
               }
+
             );
 
+
           const parts =
-            formatter.formatToParts(now);
+            formatter.formatToParts(
+              now
+            );
+
 
           const weekday =
             parts.find(
-              item => item.type === "weekday"
+
+              item =>
+                item.type === "weekday"
+
             )?.value;
+
 
           const hour =
             Number(
+
               parts.find(
-                item => item.type === "hour"
+
+                item =>
+                  item.type === "hour"
+
               )?.value
+
             );
+
 
           const minute =
             Number(
+
               parts.find(
-                item => item.type === "minute"
+
+                item =>
+                  item.type === "minute"
+
               )?.value
+
             );
 
+
           console.log(
+
             `Waktu WIB: ${weekday} ${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
+
           );
 
 
+
           // =================================================
-          // TENTUKAN PESAN
+          // PESAN
           // =================================================
 
-          let title = "";
-          let body = "";
+          let title =
+            "";
 
-          // -----------------------------------------------
+
+          let body =
+            "";
+
+
+
+          // =================================================
           // TES MANUAL
-          // -----------------------------------------------
+          // =================================================
 
           if (
+
             process.env.GITHUB_EVENT_NAME ===
             "workflow_dispatch"
+
           ) {
 
             title =
               "🔔 Tes PDO SION";
+
 
             body =
               "Notifikasi dari GitHub Actions berhasil!";
@@ -147,17 +284,21 @@ jobs:
           }
 
 
-          // -----------------------------------------------
+
+          // =================================================
           // SENIN & KAMIS - 05.00
-          // -----------------------------------------------
+          // =================================================
 
           else if (
 
             hour === 5 &&
 
             (
+
               weekday === "Monday" ||
+
               weekday === "Thursday"
+
             )
 
           ) {
@@ -165,20 +306,35 @@ jobs:
             title =
               "📖 Renungan Baru PDO SION";
 
+
             body =
               "Renungan hari ini sudah tersedia. Yuk luangkan waktu untuk membaca Firman Tuhan.";
 
           }
 
 
-          // -----------------------------------------------
-          // SETIAP HARI - 06.00
-          // -----------------------------------------------
 
-          else if (hour === 6) {
+          // =================================================
+          // SENIN & KAMIS - 06.00
+          // =================================================
+
+          else if (
+
+            hour === 6 &&
+
+            (
+
+              weekday === "Monday" ||
+
+              weekday === "Thursday"
+
+            )
+
+          ) {
 
             title =
-              "🙏 Pengingat PDO SION";
+              "🙏 Jangan Lupa Baca Renungan";
+
 
             body =
               "Sudahkah kamu membaca renungan hari ini?";
@@ -186,14 +342,28 @@ jobs:
           }
 
 
-          // -----------------------------------------------
-          // SETIAP HARI - 12.00
-          // -----------------------------------------------
 
-          else if (hour === 12) {
+          // =================================================
+          // SENIN & KAMIS - 12.00
+          // =================================================
+
+          else if (
+
+            hour === 12 &&
+
+            (
+
+              weekday === "Monday" ||
+
+              weekday === "Thursday"
+
+            )
+
+          ) {
 
             title =
-              "🌿 Pengingat PDO SION";
+              "🌿 Jangan Lupa Baca Renungan";
+
 
             body =
               "Luangkan waktu sejenak untuk mengingat Firman Tuhan.";
@@ -201,14 +371,28 @@ jobs:
           }
 
 
-          // -----------------------------------------------
-          // SETIAP HARI - 19.00
-          // -----------------------------------------------
 
-          else if (hour === 19) {
+          // =================================================
+          // SENIN & KAMIS - 19.00
+          // =================================================
+
+          else if (
+
+            hour === 19 &&
+
+            (
+
+              weekday === "Monday" ||
+
+              weekday === "Thursday"
+
+            )
+
+          ) {
 
             title =
-              "❤️ Pengingat PDO SION";
+              "❤️ Jangan Lupa Baca Renungan";
+
 
             body =
               "Mari kembali merenungkan Firman Tuhan hari ini.";
@@ -216,173 +400,319 @@ jobs:
           }
 
 
+
+          // =================================================
+          // TIDAK ADA JADWAL
+          // =================================================
+
           else {
 
             console.log(
               "Tidak ada jadwal notifikasi."
             );
 
+
             process.exit(0);
 
           }
 
 
-          console.log("Judul:", title);
-          console.log("Pesan:", body);
+
+          console.log(
+            "Judul:",
+            title
+          );
+
+
+          console.log(
+            "Pesan:",
+            body
+          );
+
 
 
           // =================================================
-          // AMBIL TOKEN DARI FIRESTORE
+          // AMBIL TOKEN FIRESTORE
           // =================================================
 
           const snapshot =
             await db
-              .collection("pushRegistrations")
+
+              .collection(
+                "pushRegistrations"
+              )
+
               .get();
+
 
 
           const registrations =
             snapshot.docs
-              .map(doc => ({
-                id: doc.id,
-                token: doc.data().token
-              }))
+
+              .map(
+
+                doc => ({
+
+                  id:
+                    doc.id,
+
+                  token:
+                    doc.data().token
+
+                })
+
+              )
+
               .filter(
+
                 item =>
-                  typeof item.token === "string" &&
-                  item.token.length > 0
+
+                  typeof item.token ===
+                  "string"
+
+                  &&
+
+                  item.token.length >
+                  0
+
               );
 
 
+
           console.log(
+
             `Jumlah perangkat: ${registrations.length}`
+
           );
 
 
-          if (registrations.length === 0) {
+
+          if (
+
+            registrations.length ===
+            0
+
+          ) {
 
             console.log(
+
               "Tidak ada perangkat yang terdaftar."
+
             );
+
 
             process.exit(0);
 
           }
 
 
+
           // =================================================
-          // KIRIM KE TOKEN
+          // KIRIM MAKSIMAL 500 TOKEN
           // =================================================
 
-          let totalSuccess = 0;
-          let totalFailure = 0;
+          let totalSuccess =
+            0;
+
+
+          let totalFailure =
+            0;
+
 
 
           for (
+
             let i = 0;
+
             i < registrations.length;
+
             i += 500
+
           ) {
 
+
             const batch =
-              registrations.slice(i, i + 500);
+              registrations.slice(
+
+                i,
+
+                i + 500
+
+              );
+
+
 
             const message = {
 
               data: {
-                title: title,
-                body: body,
-                url: "/renungan.html"
+
+                title:
+                  title,
+
+                body:
+                  body,
+
+                url:
+                  "/PDO_Sion/renungan.html"
+
               },
+
 
               webpush: {
+
                 headers: {
-                  Urgency: "high"
+
+                  Urgency:
+                    "high"
+
                 }
+
               },
 
+
               tokens:
+
                 batch.map(
-                  item => item.token
+
+                  item =>
+                    item.token
+
                 )
 
             };
 
 
+
             console.log(
+
               `Mengirim batch ${Math.floor(i / 500) + 1}...`
+
             );
 
 
+
             const response =
+
               await messaging
+
                 .sendEachForMulticast(
+
                   message
+
                 );
 
 
+
             totalSuccess +=
+
               response.successCount;
 
+
             totalFailure +=
+
               response.failureCount;
 
 
-            // ---------------------------------------------
-            // HAPUS TOKEN YANG SUDAH TIDAK VALID
-            // ---------------------------------------------
+
+            // =============================================
+            // HAPUS TOKEN TIDAK VALID
+            // =============================================
 
             for (
+
               let j = 0;
+
               j < response.responses.length;
+
               j++
+
             ) {
+
 
               const result =
                 response.responses[j];
 
-              if (!result.success) {
+
+              if (
+
+                !result.success
+
+              ) {
+
 
                 const errorCode =
                   result.error?.code;
 
+
                 console.error(
+
                   "Pengiriman gagal:",
+
                   errorCode
+
                 );
+
 
 
                 if (
 
                   errorCode ===
-                    "messaging/registration-token-not-registered" ||
+
+                    "messaging/registration-token-not-registered"
+
+                  ||
 
                   errorCode ===
+
                     "messaging/invalid-registration-token"
 
                 ) {
 
+
                   try {
 
+
                     await db
+
                       .collection(
+
                         "pushRegistrations"
+
                       )
+
                       .doc(
+
                         batch[j].id
+
                       )
+
                       .delete();
 
+
                     console.log(
+
                       "Token tidak valid dihapus."
+
                     );
 
-                  } catch (deleteError) {
+
+                  }
+
+                  catch (
+
+                    deleteError
+
+                  ) {
+
 
                     console.error(
+
                       "Gagal menghapus token:",
+
                       deleteError
+
                     );
+
 
                   }
 
@@ -395,37 +725,52 @@ jobs:
           }
 
 
+
           // =================================================
-          // HASIL AKHIR
+          // HASIL
           // =================================================
 
           console.log(
             "================================="
           );
 
+
           console.log(
             "PDO SION NOTIFICATION SELESAI"
           );
+
 
           console.log(
             "Berhasil:",
             totalSuccess
           );
 
+
           console.log(
             "Gagal:",
             totalFailure
           );
+
 
           console.log(
             "================================="
           );
 
 
-          if (totalSuccess === 0) {
+
+          if (
+
+            totalSuccess ===
+            0
+
+          ) {
+
             process.exit(1);
+
           }
 
+
           EOF
+
 
           node send-notification.mjs
